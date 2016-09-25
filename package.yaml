@@ -1,0 +1,18 @@
+name: servant-api-check
+
+dependencies:
+  - base
+  - servant
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec
+      - servant-api-check
+
+library:
+  source-dirs:
+    - src

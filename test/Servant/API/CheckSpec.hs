@@ -21,21 +21,42 @@ import           Test.Hspec
 
 import           Servant.API.Check
 
+type Get' = Get '[JSON]
+
+data Custom
+
+type instance ComputeHasReqBody Custom hasReqBody = hasReqBody
+
 spec :: Spec
 spec = do
   describe "validateRequestBodies" $ do
-    it "complains about GET endpoints with request body" $ do
-      validateRequestBodies (Proxy :: Proxy (ReqBody '[JSON] Int :> Get '[JSON] Int))
+    it "validates Verb correctly" $ do
+      validateRequestBodies (Proxy :: Proxy (Get' Int))
         `shouldHaveDemoted`
-        Left "GET endpoints shouldn't have request bodies. (:> * * (ReqBody * (': * JSON '[]) Int) (Verb StdMethod * 'GET 200 (': * JSON '[]) Int))"
+        Right ()
+
+    it "complains about GET endpoints with request body" $ do
+      validateRequestBodies (Proxy :: Proxy (ReqBody '[JSON] Int :> Get' Int))
+        `shouldHaveDemoted`
+        Left "GET endpoints shouldn't have request bodies."
 
     it "works for valid apis" $ do
-      validateRequestBodies (Proxy :: Proxy (QueryParam "foo" Int :> Get '[JSON] Int))
+      validateRequestBodies (Proxy :: Proxy (QueryParam "foo" Int :> Get' Int))
         `shouldHaveDemoted` Right ()
 
     it "reports invalid apis" $ do
       validateRequestBodies (Proxy :: Proxy ())
         `shouldHaveDemoted` Left "invalid api type: ()"
+
+    it "allows to make custom combinators valid" $ do
+      validateRequestBodies (Proxy :: Proxy (Custom :> Get' Int))
+        `shouldHaveDemoted` Right ()
+
+{-
+    it "reports invalid combinators" $ do
+      validateRequestBodies (Proxy :: Proxy (() :> Get' Int))
+        `shouldHaveDemoted` Left "invalid combinator: ()"
+        -}
 
     it "" $ do
       let () = isValid (Proxy :: Proxy (QueryParam "foo" Int :> Get '[JSON] Int))
@@ -47,53 +68,53 @@ spec = do
 
     it "" $ do
       let  p = Proxy :: Proxy "huhu"
-      lower p `shouldBe` ("huhu" :: String)
+      demote p `shouldBe` ("huhu" :: String)
       let  p = Proxy :: Proxy ('() :: ())
-      lower p `shouldBe` ()
+      demote p `shouldBe` ()
       let  p = Proxy :: Proxy ('Right '() :: Either () ())
-      lower p `shouldBe` Right ()
+      demote p `shouldBe` Right ()
       let  p = Proxy :: Proxy ('Left '() :: Either () ())
-      lower p `shouldBe` Left ()
+      demote p `shouldBe` Left ()
       let  p = Proxy :: Proxy ('Text "foo")
-      lower p `shouldBe` "foo"
+      demote p `shouldBe` "foo"
 
 shouldHaveType :: (?loc :: CallStack, Typeable a) => Proxy (a :: k) -> String -> IO ()
 shouldHaveType p expected =
   show (typeRep p) `shouldBe` expected
 
-shouldHaveDemoted :: (Demote k a, Eq (Term k), Show (Term k)) =>
+shouldHaveDemoted :: (?loc :: CallStack , Demote k a, Eq (Term k), Show (Term k)) =>
   Proxy (a :: k) -> Term k -> IO ()
 shouldHaveDemoted proxy expected =
-  lower proxy `shouldBe` expected
+  demote proxy `shouldBe` expected
 
 class Demote (k :: Type) (t :: k) where
   type Term k :: Type
-  lower :: Proxy (t :: k) -> Term k
+  demote :: Proxy (t :: k) -> Term k
 
 instance KnownSymbol t => Demote Symbol t where
   type Term Symbol = String
-  lower proxy = symbolVal proxy
+  demote proxy = symbolVal proxy
 
 instance Demote () '() where
   type Term () = ()
-  lower Proxy = ()
+  demote Proxy = ()
 
 instance Demote k a => Demote (Either k l) (Left (a :: k)) where
   type Term (Either k l) = Either (Term k) (Term l)
-  lower Proxy = Left $ lower (Proxy :: Proxy a)
+  demote Proxy = Left $ demote (Proxy :: Proxy a)
 
 instance Demote l a => Demote (Either k l) (Right (a :: l)) where
   type Term (Either k l) = Either (Term k) (Term l)
-  lower Proxy = Right $ lower (Proxy :: Proxy a)
+  demote Proxy = Right $ demote (Proxy :: Proxy a)
 
 instance KnownSymbol symbol => Demote ErrorMessage (Text symbol) where
   type Term ErrorMessage = String
-  lower Proxy = lower (Proxy :: Proxy symbol)
+  demote Proxy = demote (Proxy :: Proxy symbol)
 
 instance (Demote ErrorMessage a, Demote ErrorMessage b) => Demote ErrorMessage (a :<>: b) where
   type Term ErrorMessage = String
-  lower Proxy = lower (Proxy :: Proxy a) ++ lower (Proxy :: Proxy b)
+  demote Proxy = demote (Proxy :: Proxy a) ++ demote (Proxy :: Proxy b)
 
 instance Typeable t => Demote ErrorMessage (ShowType t) where
   type Term ErrorMessage = String
-  lower Proxy = show $ typeRep (Proxy :: Proxy t)
+  demote Proxy = show $ typeRep (Proxy :: Proxy t)

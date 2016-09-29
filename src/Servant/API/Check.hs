@@ -1,9 +1,14 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -14,48 +19,58 @@ import           Data.Proxy
 import           GHC.TypeLits
 import           Servant.API
 
-type IsValid api = RunEither (ValidateRequestBodies api)
-
 isValid :: (IsValid api) => Proxy api -> ()
 isValid Proxy = ()
 
-validateRequestBodies :: Proxy api -> Proxy (ValidateRequestBodies api)
+class IsValid api where
+
+validateRequestBodies :: (ValidateRequestBodiesH NoReqBody api result) =>
+  Proxy api -> Proxy result
 validateRequestBodies Proxy = Proxy
 
-type family ValidateRequestBodies (api :: *) :: Either ErrorMessage () where
+{-
+type family ValidateRequestBodies (api :: Type) :: Either ErrorMessage () where
   ValidateRequestBodies api = ValidateRequestBodiesH NoReqBody api
+  -}
 
-data HasReqBody api
-  = YesReqBody (api :: *)
+data HasReqBody
+  = YesReqBody
   | NoReqBody
 
-type family ValidateRequestBodiesH
-  (hasReqBody :: HasReqBody endpoint)
-  (api :: *)
-    :: Either ErrorMessage () where
+class ValidateRequestBodiesH
+  (hasReqBody :: HasReqBody)
+  (api :: Type)
+  (isValid :: Either ErrorMessage ())
+  | hasReqBody api -> isValid
 
-  ValidateRequestBodiesH
-    (YesReqBody reqBodyEndpoint)
-    (Verb (GET :: StdMethod) (status :: Nat) (contentTypes :: [*]) (result :: *)) =
-      Left (
-        'Text "GET endpoints shouldn't have request bodies. (" :<>:
-        ShowType reqBodyEndpoint :<>:
-        'Text ")")
+{-
+instance ValidateRequestBodiesH
+  YesReqBody
+  (Verb (GET :: StdMethod) (status :: Nat) (contentTypes :: [Type]) (result :: Type))
+  (Left ('Text "GET endpoints shouldn't have request bodies."))
+-}
 
+instance ValidateRequestBodiesH
+  hasReqBody
+  (Verb (method :: StdMethod) (status :: Nat) (contentTypes :: [Type]) (result :: Type))
+  (Right '())
+
+instance (ValidateRequestBodiesH hasReqBody api isValid) =>
   ValidateRequestBodiesH
     hasReqBody
-    (Verb (method :: StdMethod) (status :: Nat) (contentTypes :: [*]) (result :: *)) =
-      Right '()
+    (combinator :> api)
+    isValid
 
-  ValidateRequestBodiesH
-    hasReqBody
-    (QueryParam (name :: Symbol) (p :: *) :> api)
-      = ValidateRequestBodiesH hasReqBody api
-  ValidateRequestBodiesH hasReqBody (ReqBody (contentTypes :: [*]) (body :: *) :> api) =
-    ValidateRequestBodiesH (YesReqBody (ReqBody contentTypes body :> api)) api
+instance ValidateRequestBodiesH
+  hasReqBody
+  ()
+  (Left ('Text "invalid api type: " ':<>: 'ShowType ()))
 
-  ValidateRequestBodiesH hasReqBody api =
-    Left ('Text "invalid api type: " ':<>: 'ShowType api)
+type family ComputeHasReqBody combinator (hasReqBody :: HasReqBody) :: HasReqBody
+
+type instance ComputeHasReqBody (QueryParam name p) hasReqBody = hasReqBody
+
+type instance ComputeHasReqBody (ReqBody contentTypes body) hasReqBody = YesReqBody
 
 type family RunEither (action :: Either ErrorMessage ()) :: Constraint where
   RunEither ('Right '()) = (() :: Constraint)

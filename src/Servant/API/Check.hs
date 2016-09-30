@@ -1,62 +1,56 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 module Servant.API.Check where
 
 import           Data.Kind
 import           Data.Proxy
 import           GHC.TypeLits
-import           Servant.API
 
-type IsValid api = RunEither (ValidateRequestBodies api)
+import           Servant.API.Check.CheckResult
+import           Servant.API.Check.Combinator
+import           Servant.API.Check.Shape
 
-isValid :: (IsValid api) => Proxy api -> ()
+-- | Constraint to check whether a servant api is well-formed. It is
+-- mainly provided to give better error messages in case of
+-- invalid apis.
+--
+-- Currently 'IsValid' checks
+--
+-- - the basic structure of the api, i.e. endpoints separated by
+--   'Servant.API.:<|>' consisting of combinators chained by
+--   'Servant.API.:>' and ending in 'Servant.API.Verb'.
+-- - whether all used combinators are allowed.
+--
+-- If you want to allow custom combinators, see 'IsCombinator'.
+--
+-- Currently 'Servant.API.Vault' will be reported as an invalid combinator, since
+-- providing an instance 'IsCombinator' 'Servant.API.Vault' triggers a ghc bug.
+type IsValid api = RunCheckM (CheckApi api)
+
+type family CheckApi (api :: k) :: CheckResult ErrorMessage Constraint where
+  CheckApi api =
+    CheckShape api <>
+    CheckCombinators api
+
+-- | 'isValid' is a convenience function that allows to invoke
+-- 'IsValid' (the constraint from above) for a given servant api.
+--
+-- 'isValid' is just one way to invoke the 'IsValid' constraint though.
+-- You can of course stick that constraint to other functions or values.
+isValid :: IsValid api => Proxy api -> ()
 isValid Proxy = ()
-
-validateRequestBodies :: Proxy api -> Proxy (ValidateRequestBodies api)
-validateRequestBodies Proxy = Proxy
-
-type family ValidateRequestBodies (api :: *) :: Either ErrorMessage () where
-  ValidateRequestBodies api = ValidateRequestBodiesH NoReqBody api
-
-data HasReqBody api
-  = YesReqBody (api :: *)
-  | NoReqBody
-
-type family ValidateRequestBodiesH
-  (hasReqBody :: HasReqBody endpoint)
-  (api :: *)
-    :: Either ErrorMessage () where
-
-  ValidateRequestBodiesH
-    (YesReqBody reqBodyEndpoint)
-    (Verb (GET :: StdMethod) (status :: Nat) (contentTypes :: [*]) (result :: *)) =
-      Left (
-        'Text "GET endpoints shouldn't have request bodies. (" :<>:
-        ShowType reqBodyEndpoint :<>:
-        'Text ")")
-
-  ValidateRequestBodiesH
-    hasReqBody
-    (Verb (method :: StdMethod) (status :: Nat) (contentTypes :: [*]) (result :: *)) =
-      Right '()
-
-  ValidateRequestBodiesH
-    hasReqBody
-    (QueryParam (name :: Symbol) (p :: *) :> api)
-      = ValidateRequestBodiesH hasReqBody api
-  ValidateRequestBodiesH hasReqBody (ReqBody (contentTypes :: [*]) (body :: *) :> api) =
-    ValidateRequestBodiesH (YesReqBody (ReqBody contentTypes body :> api)) api
-
-  ValidateRequestBodiesH hasReqBody api =
-    Left ('Text "invalid api type: " ':<>: 'ShowType api)
-
-type family RunEither (action :: Either ErrorMessage ()) :: Constraint where
-  RunEither ('Right '()) = (() :: Constraint)
-  RunEither ('Left error) = TypeError error

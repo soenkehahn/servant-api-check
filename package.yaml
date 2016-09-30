@@ -1,8 +1,12 @@
 name: servant-api-check
+version: "0.1"
+
+ghc-options:
+  - -Wall
 
 dependencies:
   - base
-  - servant
+  - servant == 0.8.*
 
 tests:
   spec:
@@ -12,6 +16,18 @@ tests:
     dependencies:
       - hspec
       - servant-api-check
+
+  slow:
+    main: Invalid.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec
+      - servant-api-check
+      - interpolate
+      - mockery
+      - process
+      - directory
 
 library:
   source-dirs:

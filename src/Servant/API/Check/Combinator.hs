@@ -50,7 +50,7 @@ instance IsCombinator RemoteHost
 
 type family CheckCombinators (api :: Type) :: CheckResult ErrorMessage Constraint where
   CheckCombinators ((combinator :: k) :> api) =
-    'AddConstraints '[IsCombinator combinator] <>
+    'HoldsConstraints '[IsCombinator combinator] <>
     CheckCombinators api
 
   CheckCombinators (a :<|> b) =

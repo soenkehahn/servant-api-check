@@ -78,11 +78,11 @@ instance Demote e err => Demote (CheckResult e a) ('Failure (err :: e)) where
   type Term (CheckResult e a) = CheckResult (Term e) (Term a)
   demote Proxy = Failure $ demote (Proxy :: Proxy err)
 
-instance (Demote a r, Demote [a] rs) => Demote (CheckResult e a) ('AddConstraints ((r ': rs) :: [a])) where
+instance (Demote a r, Demote [a] rs) => Demote (CheckResult e a) ('HoldsConstraints ((r ': rs) :: [a])) where
   type Term (CheckResult e a) = CheckResult (Term e) (Term a)
-  demote Proxy = AddConstraints $ demote (Proxy :: Proxy (r ': rs))
+  demote Proxy = HoldsConstraints $ demote (Proxy :: Proxy (r ': rs))
 
-instance Demote (CheckResult e a) ('AddConstraints '[]) where
+instance Demote (CheckResult e a) ('HoldsConstraints '[]) where
   type Term (CheckResult e a) = CheckResult (Term e) (Term a)
   demote Proxy = success
 

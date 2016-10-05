@@ -37,15 +37,15 @@ spec = do
 
     it "adds constraints for invalid combinators" $ do
       check (Proxy :: Proxy (() :> Get' Int))
-        `shouldHaveDemoted` AddConstraints ["IsCombinator * ()"]
+        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * ()"]
 
     it "allows to add custom combinators" $ do
       check (Proxy :: Proxy (Custom :> Get' Int))
-        `shouldHaveDemoted` AddConstraints ["IsCombinator * Custom"]
+        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * Custom"]
 
     it "allows to add custom combinators twice" $ do
       check (Proxy :: Proxy (Custom :> Custom :> Get' Int))
-        `shouldHaveDemoted` AddConstraints ["IsCombinator * Custom", "IsCombinator * Custom"]
+        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * Custom", "IsCombinator * Custom"]
 
     it "allows to add custom combinators" $ do
       isValid (Proxy :: Proxy (Custom :> Get' Int))

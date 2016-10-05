@@ -16,29 +16,30 @@ import           GHC.TypeLits
 -- Forms a Monoid with '<>' and 'Success'.
 data CheckResult error constraint
   = Failure error
-  | AddConstraints [constraint]
+  | HoldsConstraints [constraint]
   deriving (Eq, Show)
 
-type Success = 'AddConstraints '[]
+type Success = 'HoldsConstraints '[]
 
 success :: CheckResult e constraint
-success = AddConstraints []
+success = HoldsConstraints []
 
 -- | Type family to execute 'CheckResult's.
 --
--- - In the case of 'AddConstraints' the contained constraints will be returned.
+-- - In the case of 'HoldsConstraints' the contained constraints will be returned.
 --   This allows to actually require that the constraints be fullfilled.
 -- - In the case of 'Failure' it'll make the compiler throw the contained error
 --   message as a type error.
-type family RunCheckM (action :: CheckResult ErrorMessage Constraint) :: Constraint where
-  RunCheckM ('Failure err) = TypeError err
-  RunCheckM ('AddConstraints constraints) = RunConstraints constraints
+type family RunCheckResult (action :: CheckResult ErrorMessage Constraint) :: Constraint where
+  RunCheckResult ('Failure err) = TypeError err
+  RunCheckResult ('HoldsConstraints constraints) = RunConstraints constraints
 
 type family (<>) (a :: CheckResult error constraint) (b :: CheckResult error constraint) :: CheckResult error constraint where
   'Failure e <> 'Failure f = 'Failure e
-  'Failure e <> 'AddConstraints cs = 'Failure e
-  'AddConstraints cs <> 'Failure e = 'Failure e
-  'AddConstraints as <> 'AddConstraints bs = 'AddConstraints ((as ++ bs) :: [Constraint])
+  'Failure e <> 'HoldsConstraints cs = 'Failure e
+  'HoldsConstraints cs <> 'Failure e = 'Failure e
+  'HoldsConstraints as <> 'HoldsConstraints bs =
+    'HoldsConstraints ((as ++ bs) :: [Constraint])
 
 -- * Type Utils
 

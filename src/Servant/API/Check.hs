@@ -40,7 +40,7 @@ import           Servant.API.Check.Shape
 --
 -- Currently 'Servant.API.Vault' will be reported as an invalid combinator, since
 -- providing an instance 'IsCombinator' 'Servant.API.Vault' triggers a ghc bug.
-type IsValid api = RunCheckM (CheckApi api)
+type IsValid api = RunCheckResult (CheckApi api)
 
 type family CheckApi (api :: k) :: CheckResult ErrorMessage Constraint where
   CheckApi api =

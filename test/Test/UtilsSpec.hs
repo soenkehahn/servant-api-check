@@ -37,8 +37,8 @@ spec = do
         p `shouldHaveDemoted` Failure ()
 
       it "works for Right" $ do
-        let  p = Proxy :: Proxy ('AddConstraints '[ '() ] :: CheckResult () ())
-        p `shouldHaveDemoted` AddConstraints [()]
+        let  p = Proxy :: Proxy ('HoldsConstraints '[ '() ] :: CheckResult () ())
+        p `shouldHaveDemoted` HoldsConstraints [()]
 
       it "works for Success" $ do
         let  p = Proxy :: Proxy (Success :: CheckResult () ())

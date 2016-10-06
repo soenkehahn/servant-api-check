@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 
 import           Data.String.Interpolate
 import           Data.String.Interpolate.Util

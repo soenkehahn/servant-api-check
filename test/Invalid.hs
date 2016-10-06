@@ -1,5 +1,3 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE ViewPatterns #-}
 
 import           Data.String.Interpolate
 import           Data.String.Interpolate.Util

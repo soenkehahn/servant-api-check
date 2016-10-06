@@ -1,14 +1,8 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module Servant.API.CheckSpec where
 
@@ -17,7 +11,6 @@ import           Data.Proxy
 import           Data.Typeable
 import           GHC.Stack
 import           Servant.API
--- import           Servant.API.Internal.Test.ComprehensiveAPI
 import           Test.Hspec
 
 import           Servant.API.Check

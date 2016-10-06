@@ -2,13 +2,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ImplicitParams #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module Test.Utils where
 
@@ -20,8 +18,8 @@ import           GHC.TypeLits
 import           Servant.API
 import           Test.Hspec
 
-import           Servant.API.Check.Combinator
 import           Servant.API.Check.CheckResult
+import           Servant.API.Check.Combinator
 
 type Get' = Get '[JSON]
 

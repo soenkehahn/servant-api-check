@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Servant.API.Check.ShapeSpec where

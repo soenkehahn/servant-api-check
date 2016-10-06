@@ -17,6 +17,13 @@ tests:
       - hspec
       - servant-api-check
 
+  doctest:
+    main: Doctest.hs
+    source-dirs:
+      - test
+    dependencies:
+      - doctest
+
   slow:
     main: Invalid.hs
     source-dirs:

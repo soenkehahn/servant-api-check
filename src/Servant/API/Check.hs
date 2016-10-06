@@ -30,8 +30,34 @@ import           Servant.API.Check.Shape
 --
 -- If you want to allow custom combinators, see 'IsCombinator'.
 --
--- Currently 'Servant.API.Vault' will be reported as an invalid combinator, since
--- providing an instance 'IsCombinator' 'Servant.API.Vault' triggers a ghc bug.
+-- (Currently 'Servant.API.Vault' will be reported as an invalid combinator, since
+-- providing an instance 'IsCombinator' 'Servant.API.Vault' triggers a ghc bug.)
+--
+-- Here's some examples of how to use the library to validate api specifications:
+--
+-- >>> :set -XTypeOperators
+-- >>> :set -XDataKinds
+-- >>> import Servant.API
+-- >>> import Servant.API.Check
+--
+-- >>> type MyApi = QueryParam "foo" Int :> Get '[JSON] Int
+-- >>> myApi = Proxy :: Proxy MyApi
+-- >>> isValid myApi -- typechecking this expression validates the api
+-- ()
+--
+-- >>> type InvalidApi = QueryParam "foo" :> Get '[JSON] Int
+-- >>> invalidApi = Proxy :: Proxy InvalidApi
+-- >>> isValid invalidApi
+-- ...
+--     • No instance for (IsCombinator (QueryParam "foo"))
+-- ...
+--
+-- >>> type InvalidApi2 = QueryParam "foo" Int :> Get '[JSON]
+-- >>> invalidApi2 = Proxy :: Proxy InvalidApi2
+-- >>> isValid invalidApi2
+-- ...
+--     • invalid servant api: Verb 'GET 200 '[JSON]
+-- ...
 type IsValid api = RunCheckResult (CheckApi api)
 
 type family CheckApi (api :: k) :: CheckResult ErrorMessage Constraint where

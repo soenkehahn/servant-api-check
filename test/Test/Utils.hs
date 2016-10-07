@@ -27,9 +27,9 @@ type Post' = Post '[JSON]
 
 -- * demotion from types to values
 
-shouldHaveDemoted :: (?loc :: CallStack, Demote k a, Eq (Term k), Show (Term k)) =>
+shouldDemoteTo :: (?loc :: CallStack, Demote k a, Eq (Term k), Show (Term k)) =>
   Proxy (a :: k) -> Term k -> IO ()
-shouldHaveDemoted proxy expected =
+shouldDemoteTo proxy expected =
   demote proxy `shouldBe` expected
 
 class Demote (k :: Type) (t :: k) where

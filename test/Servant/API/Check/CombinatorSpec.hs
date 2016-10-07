@@ -23,19 +23,19 @@ spec = do
   describe "check" $ do
     it "works for valid apis" $ do
       check (Proxy :: Proxy (Get' Int))
-        `shouldHaveDemoted` success
+        `shouldDemoteTo` success
 
     it "adds constraints for invalid combinators" $ do
       check (Proxy :: Proxy (() :> Get' Int))
-        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * ()"]
+        `shouldDemoteTo` HoldsConstraints ["IsCombinator * ()"]
 
     it "allows to add custom combinators" $ do
       check (Proxy :: Proxy (Custom :> Get' Int))
-        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * Custom"]
+        `shouldDemoteTo` HoldsConstraints ["IsCombinator * Custom"]
 
     it "allows to add custom combinators twice" $ do
       check (Proxy :: Proxy (Custom :> Custom :> Get' Int))
-        `shouldHaveDemoted` HoldsConstraints ["IsCombinator * Custom", "IsCombinator * Custom"]
+        `shouldDemoteTo` HoldsConstraints ["IsCombinator * Custom", "IsCombinator * Custom"]
 
     it "allows to add custom combinators" $ do
       isValid (Proxy :: Proxy (Custom :> Get' Int))

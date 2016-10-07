@@ -17,21 +17,21 @@ spec :: Spec
 spec = do
   context ":>" $ do
     it "allows :>" $ do
-      shouldHaveDemoted
+      shouldDemoteTo
         (check (Proxy :: Proxy (() :> Get' Int)))
         success
 
     it "allows multiple :>" $ do
-      shouldHaveDemoted
+      shouldDemoteTo
         (check (Proxy :: Proxy (() :> () :> Get' Int)))
         success
 
     it "allows :<|>" $ do
-      shouldHaveDemoted
+      shouldDemoteTo
         (check (Proxy :: Proxy (Get' Int :<|> Post' Int)))
         success
 
   it "reports invalid apis" $ do
-    shouldHaveDemoted
+    shouldDemoteTo
       (check (Proxy :: Proxy ()))
       (Failure "invalid servant api: ()")

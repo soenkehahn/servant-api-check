@@ -15,25 +15,25 @@ spec = do
   describe "demoting" $ do
     it "works for Symbol" $ do
       let  p = Proxy :: Proxy "huhu"
-      p `shouldHaveDemoted` ("huhu" :: String)
+      p `shouldDemoteTo` ("huhu" :: String)
 
     it "works for ()" $ do
       let  p = Proxy :: Proxy ('() :: ())
-      p `shouldHaveDemoted` ()
+      p `shouldDemoteTo` ()
 
     context "CheckResult" $ do
       it "works for Left" $ do
         let  p = Proxy :: Proxy ('Failure '() :: CheckResult () ())
-        p `shouldHaveDemoted` Failure ()
+        p `shouldDemoteTo` Failure ()
 
       it "works for Right" $ do
         let  p = Proxy :: Proxy ('HoldsConstraints '[ '() ] :: CheckResult () ())
-        p `shouldHaveDemoted` HoldsConstraints [()]
+        p `shouldDemoteTo` HoldsConstraints [()]
 
       it "works for Success" $ do
         let  p = Proxy :: Proxy (Success :: CheckResult () ())
-        p `shouldHaveDemoted` success
+        p `shouldDemoteTo` success
 
     it "works for Text" $ do
       let  p = Proxy :: Proxy ('Text "foo")
-      p `shouldHaveDemoted` "foo"
+      p `shouldDemoteTo` "foo"

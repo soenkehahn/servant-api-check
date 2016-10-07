@@ -25,12 +25,12 @@ spec = do
   describe "Check" $ do
     it "allows simple GET endpoints" $ do
       check (Proxy :: Proxy (Get' Int))
-        `shouldHaveDemoted`
+        `shouldDemoteTo`
         success
 
     it "disallows invalid endpoints after :<|>" $ do
       check (Proxy :: Proxy (Get' Int :<|> ()))
-        `shouldHaveDemoted`
+        `shouldDemoteTo`
         Failure "invalid servant api: ()"
 
     validApiSpec (Proxy :: Proxy (QueryParam "foo" Int :> Get' Int))

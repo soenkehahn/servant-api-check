@@ -15,11 +15,18 @@ import           Servant.API.Check.CheckResult
 
 -- | Open (i.e. extensible) class for validating combinators.
 --
--- If you have a custom combinator, just create an instance
+-- If you have a custom combinator, just create an instance like this:
 --
--- @instances IsCombinator YourCustomCombinator@
+-- >>> import Data.Proxy
+-- >>> import Servant.API.Check
 --
--- without methods.
+-- >>> data CustomCombinator = CustomCombinator
+-- >>> instance IsCombinator CustomCombinator
+--
+-- >>> type MyApi = CustomCombinator :> Get '[JSON] Int
+-- >>> myApi = Proxy :: Proxy MyApi
+-- >>> isValid myApi
+-- ()
 class IsCombinator (combinator :: k)
 
 instance IsCombinator (path :: Symbol)

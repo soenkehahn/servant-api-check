@@ -15,6 +15,7 @@ import           GHC.TypeLits
 
 import           Servant.API.Check.CheckResult
 import           Servant.API.Check.Combinator
+import           Servant.API.Check.GetRequestBody
 import           Servant.API.Check.Shape
 
 -- | Constraint to check whether a servant api is well-formed. It is
@@ -63,7 +64,8 @@ type IsValid api = RunCheckResult (CheckApi api)
 type family CheckApi (api :: k) :: CheckResult ErrorMessage Constraint where
   CheckApi api =
     CheckShape api <>
-    CheckCombinators api
+    CheckCombinators api <>
+    CheckGetRequestBody api
 
 -- | 'isValid' is a convenience function that allows to invoke
 -- 'IsValid' (the constraint from above) for a given servant api.

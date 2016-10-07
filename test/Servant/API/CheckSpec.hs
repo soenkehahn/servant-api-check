@@ -67,7 +67,7 @@ type ComprehensiveAPI =
   QueryParams "foo" Int :> GET :<|>
   QueryFlag "foo" :> GET :<|>
   RemoteHost :> GET :<|>
-  ReqBody '[JSON] Int :> GET :<|>
+  ReqBody '[JSON] Int :> Post '[JSON] Int :<|>
   Get '[JSON] (Headers '[Header "foo" Int] NoContent) :<|>
   "foo" :> GET :<|>
 --  Vault :> GET :<|>

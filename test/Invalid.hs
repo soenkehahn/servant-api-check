@@ -14,26 +14,31 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "Combinator" $ do
-    it "complains about invalid combinators" $ do
+    it "disallows () as a combinator" $ do
       "isValid (Proxy :: Proxy (() :> Get' Int))"
         `shouldNotTypecheckWith` "No instance for (IsCombinator ())"
 
-    it "complains about invalid combinators" $ do
+    it "disallows invalid combinators" $ do
       "isValid (Proxy :: Proxy (QueryParam \"foo\" :> Get' Int))"
         `shouldNotTypecheckWith` "No instance for (IsCombinator (QueryParam \"foo\"))"
 
-    it "complains about invalid combinators after valid ones" $ do
+    it "disallows invalid combinators after valid ones" $ do
       "isValid (Proxy :: Proxy (QueryParam \"foo\" Int :> QueryParam \"bar\" :> Get' Int))"
         `shouldNotTypecheckWith` "No instance for (IsCombinator (QueryParam \"bar\"))"
 
-    it "complains about invalid combinators before valid ones" $ do
+    it "disallows invalid combinators before valid ones" $ do
       "isValid (Proxy :: Proxy (QueryParam \"foo\" :> QueryParam \"bar\" Int :> Get' Int))"
         `shouldNotTypecheckWith` "No instance for (IsCombinator (QueryParam \"foo\"))"
 
   describe "Shape" $ do
-    it "complains about apis that are not built with :<|> and :>" $ do
+    it "disallows apis that are not built with :<|> and :>" $ do
       "isValid (Proxy :: Proxy ())"
         `shouldNotTypecheckWith` "invalid servant api: ()"
+
+  describe "GetRequestBody" $ do
+    it "disallows request bodies in GET endpoints" $ do
+      "isValid (Proxy :: Proxy (ReqBody '[JSON] Int :> Get' Int))"
+        `shouldNotTypecheckWith` "GET endpoints are not allowed to have request bodies"
 
 shouldNotTypecheckWith :: String -> String -> IO ()
 shouldNotTypecheckWith expression expected = do

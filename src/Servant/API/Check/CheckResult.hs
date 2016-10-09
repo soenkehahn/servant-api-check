@@ -31,8 +31,7 @@ type family RunCheckResult (action :: CheckResult ErrorMessage Constraint) :: Co
   RunCheckResult ('HoldsConstraints constraints) = RunConstraints constraints
 
 type family (<>) (a :: CheckResult error constraint) (b :: CheckResult error constraint) :: CheckResult error constraint where
-  'Failure e <> 'Failure f = 'Failure e
-  'Failure e <> 'HoldsConstraints cs = 'Failure e
+  'Failure e <> next = 'Failure e
   'HoldsConstraints cs <> 'Failure e = 'Failure e
   'HoldsConstraints as <> 'HoldsConstraints bs =
     'HoldsConstraints ((as ++ bs) :: [Constraint])

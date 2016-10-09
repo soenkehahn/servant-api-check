@@ -27,5 +27,8 @@ type family CheckGetRequestBodyH (hasReqBody :: Bool) (api :: k) :: CheckResult 
     'Failure ('Text "GET endpoints are not allowed to have request bodies")
   CheckGetRequestBodyH hasReqBody (Verb method status contentTypes result) =
     Success
-  CheckGetRequestBodyH hasReqBody api =
+  CheckGetRequestBodyH hasReqBody Raw =
     Success
+  CheckGetRequestBodyH hasReqBody
+    (WithNamedContext name subContext api) =
+      CheckGetRequestBodyH hasReqBody api

@@ -59,4 +59,11 @@ type family CheckCombinators (api :: Type) :: CheckResult ErrorMessage Constrain
   CheckCombinators (a :<|> b) =
     CheckCombinators a <> CheckCombinators b
 
-  CheckCombinators api = Success
+  CheckCombinators (Verb method status contentTypes result) =
+    Success
+
+  CheckCombinators Raw =
+    Success
+
+  CheckCombinators (WithNamedContext name subContext api) =
+    CheckCombinators api
